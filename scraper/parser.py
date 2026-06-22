@@ -1,19 +1,19 @@
-import requests
-from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from bs4 import BeautifulSoup  # type: ignore
 import re
 
 BASE_OPS = "https://docs.redhat.com/en/documentation/openshift_container_platform/{}/html/operators/cluster-operators-reference"
 
 def get_operator_versions(version):
     url = BASE_OPS.format(version)
-    soup = BeautifulSoup(requests.get(url).text, "html.parser")
+    soup = BeautifulSoup(urlopen(url).read(), "html.parser")
 
     operators = {}
     for link in soup.select("a[href*='project']"):
         name = link.text.strip()
         op_url = "https://docs.redhat.com" + link["href"]
 
-        op_page = BeautifulSoup(requests.get(op_url).text, "html.parser")
+        op_page = BeautifulSoup(urlopen(op_url).read(), "html.parser")
         version_tag = op_page.find(text=re.compile("Version", re.I))
 
         operators[name] = version_tag.find_next().text.strip() if version_tag else "unknown"

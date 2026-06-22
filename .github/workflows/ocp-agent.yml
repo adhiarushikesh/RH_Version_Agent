@@ -1,0 +1,32 @@
+name: OCP Version Agent
+
+on:
+  schedule:
+    - cron: "30 20 * * *"   # 2 AM IST
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r scraper/requirements.txt
+
+      - name: Run agent
+        run: python scraper/agent.py --version 4.21
+
+      - name: Commit results
+        run: |
+          git config user.name "OCP Agent"
+          git config user.email "agent@github.com"
+          git add output/*.json
+          git commit -m "Updated OCP versions" || echo "No changes"
+          git push
